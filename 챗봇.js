@@ -123,7 +123,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
 
  else if(cmd == "!소환"){
      replier.reply("1. !날씨 {지역명}을 입력하면\n{지역명} 의 날씨를 알려줍니다.\n\n2. !내일 {지역명}을 입력하면\n{지역명}의 내일 날씨를 알려줍니다.\n\n"+
-     "3. !사전 {단어}를 입력하면\n{단어}의 정의를 알려줍니다.");
+     "3. !사전 {단어}를 입력하면\n{단어}의 정의를 알려줍니다.\n\n4. !룰렛 을 입력하면 1~100 중 랜덤으로 정수 하나를 내놓습니다.");
  }
 
 
@@ -160,7 +160,32 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
     else {
         replier.reply(result_3);
     }
+ }
 
+ else if(cmd == "!룰렛"){
+    var result_4 = Math.floor(Math.random() * 100) + 1; 
+    if(result_4<=10){
+        replier.reply(result_4+"가 나왔습니다...\n"+sender+"님~ 너무 한심하네요~");
+    }
+    else if(result_4<=50){
+        replier.reply(result_4+"가 나왔습니다...\n"+sender+"님 나쁘지는 않네요ㅋ");
+    }
+    else if(result_4<=80){
+        replier.reply(result_4+"가 나왔습니다...\n"+sender+"님 괜찮은데요? ");
+    }
+    else if(result_4<=90){
+        replier.reply(result_4+"가 나왔습니다...\n"+sender+"님 상위권 축하드려요~");
+    } 
+    else if(result_4<=99){
+        replier.reply(result_4+"가 나왔습니다...\n"+sender+"님 최상위권이네요^^!");
+    }
+    else{
+        replier.reply(result_4+"가 나왔습니다.\n"+sender+"님이 왕좌에 오르셨습니다.");
+        replier.reply(result_4+"가 나왔습니다.\n"+sender+"님이 왕좌에 오르셨습니다.");
+        replier.reply(result_4+"가 나왔습니다.\n"+sender+"님이 왕좌에 오르셨습니다.");
+        replier.reply(result_4+"가 나왔습니다.\n"+sender+"님이 왕좌에 오르셨습니다.");
+        replier.reply(result_4+"가 나왔습니다.\n"+sender+"님이 왕좌에 오르셨습니다.");
+    }
     
  }
 
