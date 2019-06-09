@@ -72,8 +72,40 @@ function getTomorrow(area){
     }
 
 
+} 
+
+//단어 검색 함수
+function dictionary(word){
+    
+    try{
+    var html = Utils.getWebText("https://stdict.korean.go.kr/search/searchResult.do?pageSize=10&searchKeyword="+word); 
+    html=html.replace(/<[^>]+>/g,""); 
+    html=html.split("선택 항목")[1];
+    html=html.split("선택 항목")[0]; 
+    html=html.trim();
+    html=html.split("취소")[1]; 
+    html=html.trim(); 
+    html=html.split("\n");
+   
+    for(var i=0;i<html.length;i++){
+        html[i]=html[i].trim();
+    }
+
+    html = html.join("\n"); 
+    html = html.replace(/전체 보기/gi,"");
+    
+    html=html.substring(0,html.length-8);
+
+    return html;
+
+    } 
+    catch(e){
+        return null;
+    }
+    
 }
 
+//전체 응답 메인 함수
 function response(room, msg, sender, isGroupChat, replier, imageDB) 
 {
  msg = msg.trim();  
@@ -82,7 +114,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
  if(cmd =="!날씨"){
     var result = getWeatherInfo(data);
     if(result == null){
-        replier.reply(data + "는 적절치 않은 검색어입니다.");
+        replier.reply(data + "은(는) 적절치 않은 검색어입니다. "+sender+"님");
     }
     else {
         replier.reply(result);
@@ -90,19 +122,46 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
  }
 
  else if(cmd == "!소환"){
-     replier.reply("1. !날씨 {지역명}을 입력하면\n{지역명} 의 날씨를 알려줍니다.\n\n2. !내일 {지역명}을 입력하면\n{지역명}의 내일 날씨를 알려줍니다.");
+     replier.reply("1. !날씨 {지역명}을 입력하면\n{지역명} 의 날씨를 알려줍니다.\n\n2. !내일 {지역명}을 입력하면\n{지역명}의 내일 날씨를 알려줍니다.\n\n"+
+     "3. !사전 {단어}를 입력하면\n{단어}의 정의를 알려줍니다.");
  }
 
 
  else if(cmd == "!내일"){
     var result_2 = getTomorrow(data);
     if(result_2 == null){
-        replier.reply(data + "는 적절치 않은 검색어입니다.");
+        replier.reply(data + "은(는) 적절치 않은 검색어입니다. "+sender+"님");
     }
     else {
         replier.reply(result_2);
     }
- }
+ } 
+ 
+ else if(cmd == "!군대"){
+     if(data == "학건"){
+         replier.reply("얼마 남지 않았습니다ㅋ");
+     }
+     else if(data == "현모"){
+         replier.reply("자랑스러운 전역전사입니다");
+     }
+     else if(data == "종헌"||data == "하람"||data == "진우"){
+         replier.reply("열심히 국방의 의무를 수행중입니다.");
+     }
+     else{
+         replier.reply("ㅎㅎ");
+     }
+ } 
 
+ else if(cmd == "!사전"){ 
+     var result_3 = dictionary(data);
+    if(result_3 == null){
+        replier.reply(data + "은(는) 적절치 않은 검색어입니다. "+sender+"님");
+    }
+    else {
+        replier.reply(result_3);
+    }
+
+    
+ }
 
 }
