@@ -120,7 +120,38 @@ function determinBot(set){
     }
   
   
-  }
+  } 
+
+//알람 함수
+function alarm(alarm_data){
+    try{
+        var date = new Date();
+        var call_date = new Date();
+        var hour_data = alarm_data.split(":")[0];
+        var minute_data = alarm_data.split(":")[1];
+        var hour = Number(hour_data);
+        var min  = Number(minute_data);
+        call_date.setHours(hour);
+        call_date.setMinutes(min);
+        var date_difference = call_date.getTime() -  date.getTime(); 
+         
+        if(date_difference<= 0 ){
+            return null;
+        }
+        else{
+            
+            return date_difference;
+
+        }
+
+
+    }
+    catch(e){
+        return null;
+    }
+
+
+}
 
 //전체 응답 메인 함수
 function response(room, msg, sender, isGroupChat, replier, imageDB)  
@@ -246,24 +277,21 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
     replier.reply(result_5);
  } 
 
- else if(cmd == "!테스트"){
+ else if(cmd == "!알림"){
     Thread1 = java.lang.Thread();
     Thread2 = java.lang.Thread();
-    var date = new Date();
-    var call_date = new Date();
-    try{
-        var hour_data = data.split(":")[0];
-        var minute_data = data.split(":")[1];
-        var talk_data = data.split(":")[2];
-        hour = Number(hour_data);
-        min  = Number(minute_data);
-
-
-    }
-    catch(e){
-        return null;
+    var alarm_return = alarm(data); 
+    var talk_data = data.split(":")[2];
+    if(alarm_return == null){
+        replier.reply("잘못된 입력입니다.");
     }
 
+    else{
+        replier.reply(sender+"님 알람 설정되었습니다."+alarm_return);
+        Thread1.sleep(alarm_return);
+        replier.reply(talk_data);
+    }
+    
        
    }
 
