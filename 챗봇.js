@@ -1,4 +1,4 @@
-﻿//오늘 날씨 알려주는 함수
+//오늘 날씨 알려주는 함수
 function getWeatherInfo(area){
 try{
     var data = Utils.getWebText("https://m.search.naver.com/search.naver?sm=mtp_hty.top&where=m&query="+area+"날씨");
@@ -106,7 +106,6 @@ function dictionary(word){
 } 
 
 
-
 //결정봇
 function determinBot(set){
     try{
@@ -122,6 +121,63 @@ function determinBot(set){
   
   
   }
+
+//알람 함수
+function alarm(alarm_data){
+    try{
+        var date = new Date();
+        var call_date = new Date();
+        var hour_data = alarm_data.split(":")[0];
+        var minute_data = alarm_data.split(":")[1];
+        var hour = Number(hour_data);
+        var min  = Number(minute_data);
+        call_date.setHours(hour);
+        call_date.setMinutes(min);
+        var date_difference = call_date.getTime() -  date.getTime(); 
+         
+        if(date_difference<= 0 ){
+            return null;
+        }
+        else{
+            
+            return date_difference;
+
+        }
+
+
+    }
+    catch(e){
+        return null;
+    }
+
+
+}
+
+//초성게임 전역변수들
+let CH_gameon = false; //Game starting checker 
+let CH_players = new Set();  //Game players
+let CH_gamestart = false;   //When game is playing , it turned to true
+const CH_letter = ["ㄱ","ㄴ","ㄷ","ㄹ","ㅁ","ㅂ","ㅅ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"]; //Hangul 
+let CH_turn_player = []; //Turn player 
+let CH_game_letter = [];  //Game letter 
+let CH_flag = false;  //if player plays right input for word, it changed to true value
+let CH_word_history = new Set();
+let turn =0;   //searching for turn player
+let CH_outFlag = false;
+
+//CHo Sung Game function
+function CH_right_letter(data){
+    var jaeum = [ 'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ' ];
+    var right_word = true; 
+    for(var i=0; i<2; i++) {
+      var index_test = Math.floor(((data.charCodeAt(i) - 44032) /28) / 21);
+      if(jaeum[index_test] != CH_game_letter[i]) {
+        right_word = false;
+        break; 
+      } 
+    } 
+    return right_word;
+}
 
 //전체 응답 메인 함수
 function response(room, msg, sender, isGroupChat, replier, imageDB)  
@@ -143,7 +199,9 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
  else if(cmd == "!소환"){
      replier.reply("1. !날씨 {지역명}을 입력하면\n{지역명} 의 날씨를 알려줍니다.\n\n2. !내일 {지역명}을 입력하면\n{지역명}의 내일 날씨를 알려줍니다.\n\n"+
      "3. !사전 {단어}를 입력하면\n{단어}의 정의를 알려줍니다.\n\n4. !룰렛 을 입력하면 1~100 중 랜덤으로 정수 하나를 내놓습니다.\n\n"+
-     "5. !결정 {인자1 인자2 인자3 ....} 을 입력하면 이 중 하나를 봇이 결정해서 알려줍니다.(띄어쓰기로 인자 구별)");
+     "5. !결정 {인자1 인자2 인자3 ....} 을 입력하면 이 중 하나를 봇이 결정해서 알려줍니다.(띄어쓰기로 인자 구별)\n\n"+
+     "6. !알림 {hour}:{minute}:{원하는 문구} 를 입력하면 당일 그 시각에 원하는 문구로 톡이 갑니다~\n\n"+
+     "7. 초성게임관련\n\n 7.1 '!초성게임 시작' 으로 게임시작 가능\n 7.2 '!초성게임 참가'로 게임 참여 가능\n 7.3 게임에 참여한 뒤 자기 차례에 !초성 {자기가 입력할 단어} 로 단어 말할 수 있음");
  }
 
 
@@ -247,26 +305,46 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
     replier.reply(result_5);
  } 
 
- else if(cmd == "!테스트"){
+ else if(cmd == "!알림"){
     Thread1 = java.lang.Thread();
     Thread2 = java.lang.Thread();
-    var date = new Date();
-    var call_date = new Date();
-    try{
-        var hour_data = data.split(":")[0];
-        var minute_data = data.split(":")[1];
-        var talk_data = data.split(":")[2];
-        hour = Number(hour_data);
-        min  = Number(minute_data);
-
-
-    }
-    catch(e){
-        return null;
+    var alarm_return = alarm(data); 
+    var talk_data = data.split(":")[2];
+    if(alarm_return == null||alarm_return == NaN){
+        replier.reply("잘못된 입력입니다.");
     }
 
+    else{
+        try{
+        Thread2.sleep(alarm_return/10000000000);
+        replier.reply(sender+"님 알람 설정되었습니다.");
+        Thread1.sleep(alarm_return);
+        replier.reply(talk_data);
+        }
+        catch(e){
+            replier.reply("잘못된 입력입니다.");
+        }
+        
+    }
+    
        
-   }
+   } 
+
+ else if(cmd == "!테스트"){
+     
+    var init = [ 'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ' ];
+    var iSound = ''; 
+    var src = "안녕하세요";
+    for(var i=0; i<src.length; i++) {
+      var index_test = Math.floor(((src.charCodeAt(i) - 44032) /28) / 21);
+      if(index_test >= 0) {
+        iSound += init[index_test];
+      } 
+    }
+    replier.reply(iSound);
+ }
+
+ 
 
  else if(cmd == "!결정"){
     var result_determin = determinBot(data);
@@ -276,6 +354,128 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
         else{
             replier.reply(result_determin);
         }
+  } 
+
+  else if(cmd == "!초성게임"){
+      if(CH_gameon == false && data =="시작"){
+          Thread3 = java.lang.Thread(); 
+          Thread4 = java.lang.Thread();
+          CH_gameon = true; 
+          var count = 0;
+          replier.reply(sender+"님 주최하에 초성 게임이 시작했습니다."); 
+          CH_players.add(sender);
+          while(count < 4 ){
+            replier.reply("플레이어를 기다리겠습니다. 경과 시간: "+10*Number(count)+"초");  
+            Thread3.sleep(10000); 
+            count ++;
+          } 
+          if (CH_players.size < 3){
+              replier.reply("참가자가 부족해서 게임대기를 종료합니다.");
+              CH_gameon = false;
+              CH_players.clear();
+          }
+          else{
+              replier.reply("초성게임을 시작합니다. \n 참가한 사람명: "); 
+              CH_gamestart = true;
+              let CH_players_list = [v for (v of CH_players)]; 
+              for (var i=0; i<CH_players.size;i++){
+                  replier.reply(CH_players_list[i]+" ");
+              }  
+              CH_game_letter[0] = CH_letter[Math.floor(Math.random() * 14)]; 
+              CH_game_letter[1] = CH_letter[Math.floor(Math.random() * 14)]; 
+              replier.reply("이번 게임 초성은 ["+CH_game_letter[0]+CH_game_letter[1]+"] 입니다.");  
+              turn = Math.floor(Math.random() * CH_players.size);
+              while(CH_players.size != 1){ 
+                if(turn < CH_players.size){
+                    CH_turn_player[0] = CH_players_list[turn];
+                }
+                else{
+                    turn = 0;
+                    CH_turn_player[0] = CH_players_list[turn];
+                }
+                replier.reply("This time, "+CH_turn_player[0]+"'s turn!");
+                  for(var j=3;j>0;j--){
+                      replier.reply(5*Number(j)+"seconds left. Hurry Up."); 
+                      Thread4.sleep(5000); 
+                      if(CH_flag == true){
+                          break;
+                      }
+                  } 
+                  if(CH_flag == false && CH_outFlag == false){
+                      replier.reply("Timeout!. Fuck out");
+                      CH_players_list.splice(CH_players_list.indexOf(CH_turn_player[0]));
+                      CH_players.delete(CH_turn_player[0]); 
+                      replier.reply(CH_turn_player[0]+", deleted."); 
+                      replier.reply("\n에러 검출용 남은 인원\n"+CH_players_list);
+                  } 
+                turn++; 
+                CH_outFlag = false;
+                CH_flag = false;
+              } 
+              replier.reply(CH_players_list[0]+" get the thropy!!!!");
+              //초기화
+              CH_flag = false;
+              CH_gameon = false; 
+              CH_gamestart = false; 
+              CH_players.clear();
+              CH_players_list = []; 
+              CH_word_history.clear();
+              CH_turn_player = []; 
+              CH_outFlag = false;
+          }
+        
+      }
+      else if(CH_gameon == true && data == "참가"&& CH_gamestart == false){
+          CH_players.add(sender);
+          replier.reply(sender+"님 성공적으로 게임참여 완료");
+
+      } 
+
+      else{
+          replier.reply("현재 게임에 참여할 수 없는 상태입니다.");
+      }
+
+
+  } 
+
+  else if(cmd == "!초성"){
+      if(CH_gameon == true && CH_turn_player[0] == sender && CH_gamestart == true){
+          var return_6 = CH_right_letter(data);
+          if(return_6 == false){
+              replier.reply("Wrong word input. Fuck out.");
+              CH_players_list.splice(CH_players_list.indexOf(sender));
+              CH_players.delete(sender);
+              replier.reply(sender+", deleted."); 
+              CH_outFlag = true;
+          }
+
+          else{
+              if(dictionary(data)== null){
+                replier.reply("No Word data in Dictionary. Fuck out.");
+                CH_players_list.splice(CH_players_list.indexOf(sender));
+                CH_players.delete(sender);
+                replier.reply(sender+", deleted.");  
+                CH_outFlag = true;
+              }
+              else if(CH_word_history.has(data) == true){
+                replier.reply("Already entered. Fuck out."); 
+                CH_players_list.splice(CH_players_list.indexOf(sender));
+                CH_players.delete(sender);
+                replier.reply(sender+", deleted."); 
+                CH_outFlag = true;
+              } 
+              else{
+                  replier.reply("Gratz.");
+                  CH_flag = true;
+                  CH_word_history.add(data);  
+              }
+          }
+
+      }
+
+      else{
+          replier.reply("현재 게임이 시작되지 않았거나, 참여하지 않았거나, 졌거나 혹은 당신의 턴이 아닙니다.");
+      }
   }
   
   
