@@ -400,10 +400,13 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
                       if(CH_flag == true){
                           break;
                       }
+                      else if(CH_outFlag == true){
+                          break;
+                      }
                   } 
                   if(CH_flag == false && CH_outFlag == false){
                       replier.reply("Timeout!. Fuck out");
-                      CH_players_list.splice(CH_players_list.indexOf(CH_turn_player[0]));
+                      CH_players_list.splice(CH_players_list.indexOf(CH_turn_player[0]),1);
                       CH_players.delete(CH_turn_player[0]); 
                       replier.reply(CH_turn_player[0]+", deleted."); 
                       replier.reply("\n에러 검출용 남은 인원\n"+CH_players_list);
@@ -443,7 +446,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
           var return_6 = CH_right_letter(data);
           if(return_6 == false){
               replier.reply("Wrong word input. Fuck out.");
-              CH_players_list.splice(CH_players_list.indexOf(sender));
+              CH_players_list.splice(CH_players_list.indexOf(sender),1);
               CH_players.delete(sender);
               replier.reply(sender+", deleted."); 
               CH_outFlag = true;
@@ -452,14 +455,14 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
           else{
               if(dictionary(data)== null){
                 replier.reply("No Word data in Dictionary. Fuck out.");
-                CH_players_list.splice(CH_players_list.indexOf(sender));
+                CH_players_list.splice(CH_players_list.indexOf(sender),1);
                 CH_players.delete(sender);
                 replier.reply(sender+", deleted.");  
                 CH_outFlag = true;
               }
               else if(CH_word_history.has(data) == true){
                 replier.reply("Already entered. Fuck out."); 
-                CH_players_list.splice(CH_players_list.indexOf(sender));
+                CH_players_list.splice(CH_players_list.indexOf(sender),1);
                 CH_players.delete(sender);
                 replier.reply(sender+", deleted."); 
                 CH_outFlag = true;
