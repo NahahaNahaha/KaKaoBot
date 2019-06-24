@@ -179,6 +179,194 @@ function CH_right_letter(data){
     return right_word;
 }
 
+//블랙잭 전역변수들
+let BJ_gameon = false; //Game starting checker
+let BJ_players = new Array();  //Game players
+let BJ_player= {
+  deck : [],
+  decksum : 0,
+  name : "",
+  hit : false,
+  burst : false
+};
+let BJ_gamestart = false;   //When game is playing , it turned to true
+
+let BJ_dealer = {
+  deck : [],
+  decksum : 0,
+  name : "dealer",
+  hit : false,
+  burst : false,
+};
+let BJ_ishitting = false; //hitting phase?
+let BJ_cardset = new Array(52); //카드덱은 한개로 진행, 중복체크용 
+
+
+//카드 합 계산 함수 - 버스트시 -1 반환 블랙잭시 22 반환
+function bjcardsum(player) {
+    var sum;
+    var tmp_deck = player.deck.map(el => el%13 + 1); //전부 1~13 으로 치환
+    tmp_deck.sort((a,b) => b-a); //내림차순 정렬
+
+
+  
+    for(var i=0; i<tmp_deck.length; i++) { //11~13은 전부 10으로 계산
+      if(tmp_deck[i] > 10)
+        tmp_deck[i] = 10;
+    }
+  
+    for(var i=0; i<tmp_deck.length; i++) {
+      
+      if(sum == 10 && tmp_deck[i] == 1 && player.deck.length == 2)
+      player.decksum =  22; //블랙잭!
+      else if(sum < 11 && tmp_deck[i] == 1) //A일 경우
+      sum += 11;
+      else if(sum >= 11 && tmp_deck[i] == 1)
+      sum += 1;
+      else if(sum <= 20) //그 외 나머지 숫자들 계산
+      sum += tmp_deck[i];
+      
+      else if(sum > 21)
+        {
+          player.burst = true;
+          player.decksum = -1; //버스트
+        }
+    }
+    player.decksum = sum; //합을 반환
+  
+  }
+
+
+  //카드를 중복되지 않게 나눠줌
+function bjcardtoss(player) {
+    while(1) {
+      var random = Math.floor(Math.random() * 51) + 1;
+      if (!BJ_cardset[random])
+      {
+        player.deck.push(random);
+        BJ_cardset[random] = 1;
+        break;
+      }
+    }
+  } 
+
+
+  function bjcardfirstshow(player) {
+    replier.reply("딜러의 카드\n");
+    switch (player.deck[0]-1 / 13) {
+      case 0: {
+        if(player.deck[0] <= 10)
+          replier.reply("♠" + (player.deck[0] % 13 + ' '));
+        else if(player.deck[0] == 11)
+          replier.reply("♠J ");
+        else if(player.deck[0] == 12)
+          replier.reply("♠Q ");
+        else if(player.deck[0] == 0)
+          replier.reply("♠K ");
+      }
+      case 1: {
+      if(player.deck[0] <= 10)
+        replier.reply("◆" + (player.deck[0] % 13 + ' '));
+      else if(player.deck[0] == 11)
+        replier.reply("◆J ");
+      else if(player.deck[0] == 12)
+        replier.reply("◆Q ");
+      else if(player.deck[0] == 0)
+        replier.reply("◆K ");
+      }
+      case 2: {
+      if(player.deck[0] <= 10)
+        replier.reply("♥" + (player.deck[0] % 13 + ' '));
+      else if(player.deck[0] == 11)
+        replier.reply("♥J ");
+      else if(player.deck[0] == 12)
+        replier.reply("♥Q ");
+      else if(player.deck[0] == 0)
+        replier.reply("♥K ");
+      }
+      case 3: {
+      if(player.deck[0] <= 10)
+        replier.reply("♣" + (player.deck[0] % 13 + ' '));
+      else if(player.deck[0] == 11)
+        replier.reply("♣J ");
+      else if(player.deck[0] == 12)
+        replier.reply("♣Q ");
+      else if(player.deck[0] == 0)
+        replier.reply("♣K ");
+      }
+    }
+  }
+
+  function bjcardshow(player) { //손 패 공개
+    replier.reply(player.name + "님의 카드\n");
+    for(var i=0; i<player.deck.length; i++) {
+      switch (player.deck[i]-1 / 13) {
+        case 0: {
+          if(player.deck[i]%13 == 0)
+            replier.reply("♠K ");
+          else if(player.deck[i]%13 == 11)
+            replier.reply("♠J ");
+          else if(player.deck[i]%13 == 12)
+            replier.reply("♠Q ");
+          else if(player.deck[i]%13 <= 10)
+            replier.reply("♠" + (player.deck[i] % 13 + ' '));
+        }
+        case 1: {
+          if(player.deck[i]%13 == 0)
+            replier.reply("◆K ");
+          else if(player.deck[i]%13 == 11)
+            replier.reply("◆J ");
+          else if(player.deck[i]%13 == 12)
+            replier.reply("◆Q ");
+          else if(player.deck[i]%13 <= 10)
+            replier.reply("◆" + (player.deck[i] % 13 + ' '));
+        }
+        case 2: {
+          if(player.deck[i]%13 == 0)
+            replier.reply("♥K ");
+          else if(player.deck[i]%13 == 11)
+            replier.reply("♥J ");
+          else if(player.deck[i]%13 == 12)
+            replier.reply("♥Q ");
+          else if(player.deck[i]%13 <= 10)
+            replier.reply("♥" + (player.deck[i] % 13 + ' '));
+        }
+        case 3: {
+          if(player.deck[i]%13 == 0)
+            replier.reply("♣K ");
+          else if(player.deck[i]%13 == 11)
+            replier.reply("♣J ");
+          else if(player.deck[i]%13 == 12)
+            replier.reply("♣Q ");
+          else if(player.deck[i]%13 <= 10)
+            replier.reply("♣" + (player.deck[i] % 13 + ' '));
+        }
+      }
+    }
+  
+  }
+  
+  function bjhitting(player) {
+    if(player.hit)
+    {
+      bjcardtoss(player);
+      bjcardshow(player);
+      bjcardsum(player);
+      if(player.decksum < 21 && player.decksum > 1)
+      replier.reply(player.name + "님의 카드 합:" + player.decksum);
+      else if(player.decksum == -1)
+      replier.reply(player.name + "님 버스트입니다.");
+      else if(player.decksum == 22)
+      replier.reply("♠" + player.name + "님의 블랙잭♠");
+    }
+  } 
+
+
+
+
+
+
+
 //전체 응답 메인 함수
 function response(room, msg, sender, isGroupChat, replier, imageDB)  
 {
@@ -196,12 +384,13 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
     }
  }
 
+
  else if(cmd == "!소환"){
      replier.reply("1. !날씨 {지역명}을 입력하면\n{지역명} 의 날씨를 알려줍니다.\n\n2. !내일 {지역명}을 입력하면\n{지역명}의 내일 날씨를 알려줍니다.\n\n"+
      "3. !사전 {단어}를 입력하면\n{단어}의 정의를 알려줍니다.\n\n4. !룰렛 을 입력하면 1~100 중 랜덤으로 정수 하나를 내놓습니다.\n\n"+
      "5. !결정 {인자1 인자2 인자3 ....} 을 입력하면 이 중 하나를 봇이 결정해서 알려줍니다.(띄어쓰기로 인자 구별)\n\n"+
      "6. !알림 {hour}:{minute}:{원하는 문구} 를 입력하면 당일 그 시각에 원하는 문구로 톡이 갑니다~\n\n"+
-     "7. 초성게임관련\n\n 7.1 '!초성게임 시작' 으로 게임시작 가능\n 7.2 '!초성게임 참가'로 게임 참여 가능\n 7.3 게임에 참여한 뒤 자기 차례에 !초성 {자기가 입력할 단어} 로 단어 말할 수 있음");
+     "7. 초성게임관련\n\n 7.1 '!초성게임 시작' 으로 게임시작 가능\n 7.2 '!초성게임 참가'로 게임 참여 가능\n 7.3 !초성 {단어}로 자기 턴에 단어 제출 가능 ");
  }
 
 
@@ -331,18 +520,18 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
    } 
 
  else if(cmd == "!테스트"){
-     
-    var init = [ 'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ' ];
-    var iSound = ''; 
-    var src = "안녕하세요";
-    for(var i=0; i<src.length; i++) {
-      var index_test = Math.floor(((src.charCodeAt(i) - 44032) /28) / 21);
-      if(index_test >= 0) {
-        iSound += init[index_test];
-      } 
-    }
-    replier.reply(iSound);
- }
+   var test_array = new king[];
+   let king= {
+    deck : [],
+    decksum : 0,
+    name : "",
+    hit : false,
+    burst : false
+  };  
+  replier.reply(test_array);
+
+
+ } 
 
  
 
@@ -361,14 +550,13 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
           Thread3 = java.lang.Thread(); 
           Thread4 = java.lang.Thread();
           CH_gameon = true; 
-          var count = 0;
           replier.reply(sender+"님 주최하에 초성 게임이 시작했습니다."); 
           CH_players.add(sender);
-          while(count < 4 ){
-            replier.reply("플레이어를 기다리겠습니다. 경과 시간: "+10*Number(count)+"초");  
-            Thread3.sleep(10000); 
-            count ++;
-          } 
+
+          replier.reply("플레이어를 30초동안 기다리겠습니다.");  
+          Thread3.sleep(30000); 
+            
+          
           if (CH_players.size < 3){
               replier.reply("참가자가 부족해서 게임대기를 종료합니다.");
               CH_gameon = false;
@@ -393,10 +581,10 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
                     turn = 0;
                     CH_turn_player[0] = CH_players_list[turn];
                 }
-                replier.reply("This time, "+CH_turn_player[0]+"'s turn!");
-                  for(var j=3;j>0;j--){
-                      replier.reply(5*Number(j)+"seconds left. Hurry Up."); 
-                      Thread4.sleep(5000); 
+                replier.reply("This time, "+CH_turn_player[0]+"'s turn!"); 
+                replier.reply("15초동안 플레이어의 입력을 기다립니다.");
+                  for(var j=15;j>0;j--){ 
+                      Thread4.sleep(1000); 
                       if(CH_flag == true){
                           break;
                       }
@@ -409,7 +597,6 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
                       CH_players_list.splice(CH_players_list.indexOf(CH_turn_player[0]),1);
                       CH_players.delete(CH_turn_player[0]); 
                       replier.reply(CH_turn_player[0]+", deleted."); 
-                      replier.reply("\n에러 검출용 남은 인원\n"+CH_players_list);
                   } 
                 turn++; 
                 CH_outFlag = false;
@@ -479,8 +666,150 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
       else{
           replier.reply("현재 게임이 시작되지 않았거나, 참여하지 않았거나, 졌거나 혹은 당신의 턴이 아닙니다.");
       }
+  } 
+
+  else if (cmd == "!블랙잭"){
+    if (BJ_gameon == false && data =="시작"){
+        Thread_BJ = java.lang.Thread();
+        BJ_gameon = true;
+        BJ_cardset = [0, ];
+        var count = 0;
+        replier.reply(sender+"님 주최하에 블랙잭 게임을 시작하겠습니다.");
+        BJ_players.push ({
+            deck : [],
+            decksum : 0,
+            name : sender,
+            hit : false,
+            burst : false
+          });
+        while (count < 4 ){
+          replier.reply("플레이어를 기다리겠습니다. 경과 시간: "+10*Number(count)+"초");
+          Thread_BJ.sleep(10000);
+          count ++;
+        } 
+    
+            replier.reply("블랙잭 게임을 시작합니다. \n 참가한 사람 목록 : ");
+            BJ_gamestart = true;
+            for (var i=0; i<BJ_players.length; i++) {
+               replier.reply(BJ_players[i].name+" ");
+            }
+            //딜러 처음 두장
+            bjcardtoss(BJ_dealer);
+            bjcardtoss(BJ_dealer);
+
+            //유저들 처음 두장
+            for (var i=0; i<BJ_players.length; i++) {
+                bjcardtoss(BJ_players[i]);
+                bjcardtoss(BJ_players[i]);
+            }
+
+            //카드 오픈 & 초기 패 계산
+            bjcardfirstshow(BJ_dealer);
+            for(var i=0; i<BJ_players.length; i++) {
+              bjcardshow(BJ_players[i]);
+            }
+
+            for(var i=0; i<BJ_players.length; i++) {
+              bjcardsum(BJ_players[i]);
+              if(BJ_players[i].decksum == 22)
+               replier.reply(BJ_players[i].name + "님의 블랙잭!");
+            }
+
+            //게임 시작!
+
+            while(1) {
+              replier.reply("Stay or Hit? Hit 하시려면 \"!히트\"를 입력해주세요.");
+              BJ_ishitting = true;
+              replier.reply("10초 기다리겠습니다.");
+              Thread_BJ.sleep(10000);
+              BJ_ishitting = false;
+              var check;
+              for(var i=0; i<BJ_players.length; i++) {
+                if(BJ_players[i].hit)
+                 check++;
+              }
+
+              if(check==0) //모두 스테이 혹은 버스트일 경우 계산 페이즈로
+               break;
+
+              for(var i=0; i<BJ_players.length; i++) {
+                if(!BJ_players[i].hit)
+                replier.reply(BJ_players[i].name + "님 스테이.");
+              }
+
+              for(var i=0; i<BJ_players.length; i++) {
+                bjhitting(BJ_players[i]);
+                BJ_players[i].hit = false;
+              }
+            }
+
+            replier.reply("딜러의 턴을 시작하겠습니다.");
+            bjcardshow(BJ_dealer);
+            bjcardsum(BJ_dealer);
+
+            while(BJ_dealer.decksum <= 16) { //16이하일 경우는 항상 히트
+                bjhitting(BJ_dealer);
+            }
+            var winplayer = [];
+            var drawplayer = [];
+            var loseplayer = [];
+            for(var i=0; i<BJ_players.length; i++) { //승패결정
+              if(BJ_players[i].decksum > BJ_dealer.decksum)
+              winplayer.push(BJ_players[i].name);
+              else if(BJ_players[i].decksum == BJ_dealer.decksum)
+              drawplayer.push(BJ_players[i].name);
+              else
+              loseplayer.push(BJ_players[i].name);
+            }
+
+            replier.reply("승리한 플레이어 : " + winplayer + "\n비긴 플레이어 : " + drawplayer + "\n진 플레이어 : " + loseplayer);
+
+            //초기화
+            BJ_gameon = false;
+            BJ_gamestart = false;
+            BJ_players = [];
+            BJ_dealer = {
+              deck : [],
+              decksum : 0,
+              name : "dealer",
+              hit : false,
+              burst : false,
+            };
+        
+
+    }
+    else if(BJ_gameon == true && data == "참가" && BJ_gamestart == false){
+        BJ_players.push = {
+          deck : [],
+          decksum : 0,
+          name : sender,
+          hit : false,
+          burst : false
+        };
+        replier.reply(sender+"님 성공적으로 게임참여 완료");
+    }
+
+    else if(BJ_gameon == true && data == "히트" && BJ_ishitting == true) {
+      for(var i =0; i<BJ_players.length; i++) {
+        if(sender == BJ_players[i].name) {
+          if(BJ_players[i].burst) {
+            replier.reply(BJ_players[i].name + "님은 버스트 하셨습니다.");
+          }
+          else {
+            BJ_players[i].hit = true;
+            replier.reply(sender + "님 히트");
+            break;
+          }
+        }
+      }
+    }
+
+    else{
+        replier.reply("현재 게임에 참여할 수 없는 상태입니다.");
+    }
+
+
   }
-  
   
 
 }
