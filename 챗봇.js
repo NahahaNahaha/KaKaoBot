@@ -361,9 +361,42 @@ function bjcardtoss(player) {
     }
   } 
 
+  //공모주 일정 알려주는 함수
+  function stockIPO(){
+   
+    try{
+    var data = Utils.getWebText("http://www.38.co.kr/html/fund/index.htm?o=k");
+    data=data.replace(/<[^>]+>/g,""); 
+    data=data.split("분석")[6]; 
 
-
-
+    data = data.split("&nbsp;"); 
+    var IPO = new Array(); 
+    
+    for(var i=1;i<26;i++){
+      IPO.push(data[i].replace(/\s*$/,""));
+    } 
+    var temp_IPO = [];
+    for(var i=0;i<25;i++){
+      temp_IPO[0] = "종목명: " + IPO[i].split("\n")[0].trim(); 
+      temp_IPO[1] = "공모주일정: " + IPO[i].split("\n")[1].trim(); 
+      temp_IPO[2] = "확정공모가: " + IPO[i].split("\n")[2].trim(); 
+      temp_IPO[3] = "희망공모가: " + IPO[i].split("\n")[3].trim(); 
+      try{
+        temp_IPO[4] = "주간사: " + IPO[i].split("\n")[5].trim(); 
+      } 
+      catch(e){
+        temp_IPO[4] = "주간사: 없음";
+      }
+      IPO[i] = temp_IPO.join("\n");
+    }
+    IPO = IPO.join("\n\n");
+    return IPO;
+    }
+    catch(e){
+    return null;
+    }
+}
+  
 
 
 
@@ -390,7 +423,8 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
      "3. !사전 {단어}를 입력하면\n{단어}의 정의를 알려줍니다.\n\n4. !룰렛 을 입력하면 1~100 중 랜덤으로 정수 하나를 내놓습니다.\n\n"+
      "5. !결정 {인자1 인자2 인자3 ....} 을 입력하면 이 중 하나를 봇이 결정해서 알려줍니다.(띄어쓰기로 인자 구별)\n\n"+
      "6. !알림 {hour}:{minute}:{원하는 문구} 를 입력하면 당일 그 시각에 원하는 문구로 톡이 갑니다~\n\n"+
-     "7. 초성게임관련\n\n 7.1 '!초성게임 시작' 으로 게임시작 가능\n 7.2 '!초성게임 참가'로 게임 참여 가능\n 7.3 !초성 {단어}로 자기 턴에 단어 제출 가능 ");
+     "7. 초성게임관련\n\n 7.1 '!초성게임 시작' 으로 게임시작 가능\n 7.2 '!초성게임 참가'로 게임 참여 가능\n 7.3 !초성 {단어}로 자기 턴에 단어 제출 가능\n\n"+
+     "8. !공모주일정 을 입력하면 공모청약가능 주식들을 일정과 주간사와 함께 나열합니다." );
  }
 
 
@@ -667,150 +701,18 @@ function response(room, msg, sender, isGroupChat, replier, imageDB)
           replier.reply("현재 게임이 시작되지 않았거나, 참여하지 않았거나, 졌거나 혹은 당신의 턴이 아닙니다.");
       }
   } 
-
-  else if (cmd == "!블랙잭"){
-    if (BJ_gameon == false && data =="시작"){
-        Thread_BJ = java.lang.Thread();
-        BJ_gameon = true;
-        BJ_cardset = [0, ];
-        var count = 0;
-        replier.reply(sender+"님 주최하에 블랙잭 게임을 시작하겠습니다.");
-        BJ_players.push ({
-            deck : [],
-            decksum : 0,
-            name : sender,
-            hit : false,
-            burst : false
-          });
-        while (count < 4 ){
-          replier.reply("플레이어를 기다리겠습니다. 경과 시간: "+10*Number(count)+"초");
-          Thread_BJ.sleep(10000);
-          count ++;
-        } 
-    
-            replier.reply("블랙잭 게임을 시작합니다. \n 참가한 사람 목록 : ");
-            BJ_gamestart = true;
-            for (var i=0; i<BJ_players.length; i++) {
-               replier.reply(BJ_players[i].name+" ");
-            }
-            //딜러 처음 두장
-            bjcardtoss(BJ_dealer);
-            bjcardtoss(BJ_dealer);
-
-            //유저들 처음 두장
-            for (var i=0; i<BJ_players.length; i++) {
-                bjcardtoss(BJ_players[i]);
-                bjcardtoss(BJ_players[i]);
-            }
-
-            //카드 오픈 & 초기 패 계산
-            bjcardfirstshow(BJ_dealer);
-            for(var i=0; i<BJ_players.length; i++) {
-              bjcardshow(BJ_players[i]);
-            }
-
-            for(var i=0; i<BJ_players.length; i++) {
-              bjcardsum(BJ_players[i]);
-              if(BJ_players[i].decksum == 22)
-               replier.reply(BJ_players[i].name + "님의 블랙잭!");
-            }
-
-            //게임 시작!
-
-            while(1) {
-              replier.reply("Stay or Hit? Hit 하시려면 \"!히트\"를 입력해주세요.");
-              BJ_ishitting = true;
-              replier.reply("10초 기다리겠습니다.");
-              Thread_BJ.sleep(10000);
-              BJ_ishitting = false;
-              var check;
-              for(var i=0; i<BJ_players.length; i++) {
-                if(BJ_players[i].hit)
-                 check++;
-              }
-
-              if(check==0) //모두 스테이 혹은 버스트일 경우 계산 페이즈로
-               break;
-
-              for(var i=0; i<BJ_players.length; i++) {
-                if(!BJ_players[i].hit)
-                replier.reply(BJ_players[i].name + "님 스테이.");
-              }
-
-              for(var i=0; i<BJ_players.length; i++) {
-                bjhitting(BJ_players[i]);
-                BJ_players[i].hit = false;
-              }
-            }
-
-            replier.reply("딜러의 턴을 시작하겠습니다.");
-            bjcardshow(BJ_dealer);
-            bjcardsum(BJ_dealer);
-
-            while(BJ_dealer.decksum <= 16) { //16이하일 경우는 항상 히트
-                bjhitting(BJ_dealer);
-            }
-            var winplayer = [];
-            var drawplayer = [];
-            var loseplayer = [];
-            for(var i=0; i<BJ_players.length; i++) { //승패결정
-              if(BJ_players[i].decksum > BJ_dealer.decksum)
-              winplayer.push(BJ_players[i].name);
-              else if(BJ_players[i].decksum == BJ_dealer.decksum)
-              drawplayer.push(BJ_players[i].name);
-              else
-              loseplayer.push(BJ_players[i].name);
-            }
-
-            replier.reply("승리한 플레이어 : " + winplayer + "\n비긴 플레이어 : " + drawplayer + "\n진 플레이어 : " + loseplayer);
-
-            //초기화
-            BJ_gameon = false;
-            BJ_gamestart = false;
-            BJ_players = [];
-            BJ_dealer = {
-              deck : [],
-              decksum : 0,
-              name : "dealer",
-              hit : false,
-              burst : false,
-            };
-        
-
-    }
-    else if(BJ_gameon == true && data == "참가" && BJ_gamestart == false){
-        BJ_players.push = {
-          deck : [],
-          decksum : 0,
-          name : sender,
-          hit : false,
-          burst : false
-        };
-        replier.reply(sender+"님 성공적으로 게임참여 완료");
-    }
-
-    else if(BJ_gameon == true && data == "히트" && BJ_ishitting == true) {
-      for(var i =0; i<BJ_players.length; i++) {
-        if(sender == BJ_players[i].name) {
-          if(BJ_players[i].burst) {
-            replier.reply(BJ_players[i].name + "님은 버스트 하셨습니다.");
-          }
-          else {
-            BJ_players[i].hit = true;
-            replier.reply(sender + "님 히트");
-            break;
-          }
-        }
-      }
-    }
-
-    else{
-        replier.reply("현재 게임에 참여할 수 없는 상태입니다.");
-    }
-
-
-  }
   
+  else if(cmd == "!공모주일정"){
+    var result = stockIPO();
+    if(result == null){
+        replier.reply("이상하네요. 사이트 오류인 것 같습니다.");
+    }
+    else {
+      replier.reply(result);
+    }
+  }
+
+
 
 }
  
